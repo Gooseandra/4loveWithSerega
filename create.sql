@@ -1,0 +1,1 @@
+create table 4serega.test()
