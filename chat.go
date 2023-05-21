@@ -1,9 +1,9 @@
 package main
 
 import (
-	"database/sql"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"log"
+	"moderatorBot/internal/storage"
 	"strconv"
 	"sync"
 	"time"
@@ -17,21 +17,24 @@ const (
 	showStatus     = ChatStatus(iota)
 )
 
-type ChatStatus uint8
+type (
+	Chat struct {
+		id         int64
+		channel    chan tgbotapi.Update
+		timeStart  time.Time
+		timeFinish time.Time
+	}
 
-type Chat struct {
-	id         int64
-	channel    chan tgbotapi.Update
-	timeStart  time.Time
-	timeFinish time.Time
-}
+	ChatStatus byte
+)
 
-func (chat Chat) routine(chats map[int64]Chat, mainMutex *sync.Mutex, db *sql.DB) {
+func (chat Chat) routine(chats map[int64]Chat, mainMutex *sync.Mutex, storage storage.Interface) {
 	lastMassageTime := time.After(time.Hour * 10)
 	status := nilStatus
 	for {
 		select {
 		case message := <-chat.channel:
+			//close(lastMassageTime)
 			lastMassageTime = time.After(time.Hour * 10)
 			log.Println("MainStatus.Update")
 			if message.Message != nil {

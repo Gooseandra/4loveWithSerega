@@ -1,4 +1,4 @@
-module awesomeProject3
+module moderatorBot
 
 go 1.17
 

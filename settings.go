@@ -1,4 +1,8 @@
-package someOtherShit
+package main
+
+const (
+	settingsTimeout = 9
+)
 
 type (
 	Settings struct {
