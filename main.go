@@ -15,7 +15,7 @@ var BotAPI *tgbotapi.BotAPI
 
 func main() {
 	var mainMutex sync.Mutex
-	var chats = map[int64]Chat{}
+	var chats = map[int64]ChatInterface{}
 	var settings Settings
 	bytes, fail := os.ReadFile(".yml")
 	if fail != nil {
@@ -44,16 +44,31 @@ func main() {
 	for {
 		select {
 		case message := <-channel:
+			if message.Message == nil {
+				// TODO: пишем в лог
+				continue
+			}
 			mainMutex.Lock()
 			chat, found := chats[message.FromChat().ID]
 			if !found {
-				chat = Chat{id: message.FromChat().ID, channel: make(chan tgbotapi.Update)}
+				if message.Message.Chat == nil {
+					// TODO: пишем в лог
+					continue
+				}
+				switch message.Message.Chat.Type {
+				case "private":
+					chat = PrivateChat{
+						BaseChat: BaseChat{id: message.FromChat().ID, channel: make(chan tgbotapi.Update)}}
+				case "supergroup":
+					chat = SupergroupChat{
+						BaseChat: BaseChat{id: message.FromChat().ID, channel: make(chan tgbotapi.Update)}}
+				}
 				chats[message.FromChat().ID] = chat
 				log.Println("Chat " + strconv.FormatInt(message.FromChat().ID, 10) + " created")
 				go chat.routine(chats, &mainMutex, s)
 			}
 			mainMutex.Unlock()
-			chat.channel <- message
+			chat.send(message)
 		}
 	}
 }
