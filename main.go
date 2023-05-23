@@ -5,10 +5,16 @@ import (
 	"github.com/go-yaml/yaml"
 	_ "github.com/lib/pq"
 	"log"
+	"moderatorBot/internal/policy"
 	"moderatorBot/internal/storage"
 	"os"
 	"strconv"
 	"sync"
+)
+
+const (
+	privateChatType    = "private"
+	supergroupChatType = "supergroup"
 )
 
 var BotAPI *tgbotapi.BotAPI
@@ -48,24 +54,33 @@ func main() {
 				// TODO: пишем в лог
 				continue
 			}
+			if message.Message.Chat == nil {
+				// TODO: пишем в лог
+				continue
+			}
 			mainMutex.Lock()
-			chat, found := chats[message.FromChat().ID]
+			chat, found := chats[message.Message.Chat.ID]
 			if !found {
-				if message.Message.Chat == nil {
+				var id storage.ChatIdModel
+				if id, fail = s.UpdateChatByTg(message.Message.Chat.ID, message.Message.Chat.Title); fail != nil {
+					// TODO: пишем в лог, возможно обрабатываем ощибку недоступности БД
+					continue
+				}
+				baseChat := BaseChat{channel: make(chan tgbotapi.Update), db: id, tg: message.FromChat().ID}
+				switch message.Message.Chat.Type {
+				case privateChatType:
+					chat = PrivateChat{BaseChat: baseChat}
+				case supergroupChatType:
+					chat = SupergroupChat{
+						BaseChat: baseChat,
+						policies: []policy.Interface{policy.NewContains("asd")}}
+				default:
 					// TODO: пишем в лог
 					continue
 				}
-				switch message.Message.Chat.Type {
-				case "private":
-					chat = PrivateChat{
-						BaseChat: BaseChat{id: message.FromChat().ID, channel: make(chan tgbotapi.Update)}}
-				case "supergroup":
-					chat = SupergroupChat{
-						BaseChat: BaseChat{id: message.FromChat().ID, channel: make(chan tgbotapi.Update)}}
-				}
 				chats[message.FromChat().ID] = chat
 				log.Println("Chat " + strconv.FormatInt(message.FromChat().ID, 10) + " created")
-				go chat.routine(chats, &mainMutex, s)
+				go chat.routine(BotAPI, chats, &mainMutex, s)
 			}
 			mainMutex.Unlock()
 			chat.send(message)

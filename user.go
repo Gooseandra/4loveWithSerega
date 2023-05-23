@@ -4,7 +4,7 @@ import "moderatorBot/internal/storage"
 
 type (
 	Admins struct {
-		cache   map[uint64]storage.AdminModel
+		cache   map[storage.ChatIdModel]storage.ChatModel
 		storage storage.Interface
 	}
 )
@@ -14,9 +14,9 @@ func NewAdmins(arg storage.Interface) (Admins, error) {
 	if fail != nil {
 		return Admins{}, fail
 	}
-	result := Admins{cache: make(map[uint64]storage.AdminModel), storage: arg}
+	result := Admins{cache: make(map[storage.ChatIdModel]storage.ChatModel), storage: arg}
 	for _, value := range slice {
-		result.cache[value.Id] = value
+		result.cache[value.ID] = value
 	}
 	return result, nil
 }

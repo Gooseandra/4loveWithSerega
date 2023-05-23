@@ -1,6 +1,7 @@
 package storage
 
 type Interface interface {
-	LoadAdmins() ([]AdminModel, error)
+	LoadAdmins() ([]ChatModel, error)
 	LoadChats() ([]int64, error)
+	UpdateChatByTg(int64, string) (ChatIdModel, error)
 }
