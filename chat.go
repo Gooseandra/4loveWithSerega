@@ -20,6 +20,7 @@ const (
 )
 
 type (
+	// BaseChat  база для всех типов чатов
 	BaseChat struct {
 		channel chan tgbotapi.Update
 		db      storage.ChatIdModel
@@ -28,15 +29,21 @@ type (
 		//timeFinish time.Time
 	}
 
+	// ChatInterface интерфейс чатов
 	ChatInterface interface {
+		// routine слушает и обрабатывает сообщения определенного чата
 		routine(*tgbotapi.BotAPI, map[int64]ChatInterface, *sync.Mutex, storage.Interface)
+		// send отправляет чату инвормацию о телеграм-сообщении
 		send(tgbotapi.Update)
 	}
 
+	// ChatStatus текущее состояние чата. Пожалуй, нахуй не нужны. В PrivateChat будем использовать дочернии обработчики
 	ChatStatus byte
 
+	// PrivateChat структура для работы с приватным чатом
 	PrivateChat struct{ BaseChat }
 
+	// SupergroupChat структура для работы с общим чатом
 	SupergroupChat struct {
 		BaseChat
 		policies  []policy.Interface
@@ -87,6 +94,7 @@ func (sc SupergroupChat) routine(botApi *tgbotapi.BotAPI, chats map[int64]ChatIn
 		case message := <-sc.channel:
 			switch {
 			case message.Message != nil:
+				// Проверка целостности входящих данных
 				if message.Message.Chat == nil {
 					// TODO: пишем в лог
 					continue
@@ -95,8 +103,11 @@ func (sc SupergroupChat) routine(botApi *tgbotapi.BotAPI, chats map[int64]ChatIn
 					// TODO: пишем в лог
 					continue
 				}
+
+				// Цикл проверок
 				for _, v := range sc.policies {
 					if v.Check(message) != nil {
+						// Если проверка сработала, то удаляем сообщение
 						dm := tgbotapi.NewDeleteMessage(message.Message.Chat.ID, message.Message.MessageID)
 						if _, fail := botApi.Request(dm); fail != nil {
 							// TODO: сохраняем кучу данных в лог
@@ -105,9 +116,11 @@ func (sc SupergroupChat) routine(botApi *tgbotapi.BotAPI, chats map[int64]ChatIn
 					}
 				}
 			default:
+				// Пришло что-то, что мы не умеем обрабатывать. Или лень
 				// TODO: пишем message в лог
 			}
 		case <-lastMassageTime:
+			// TODO: Доработать: убрать удаление сата из мапы в main
 			log.Println("time out")
 			mainMutex.Lock()
 			log.Println("Chat " + strconv.FormatInt(sc.tg, 10) + " deleted")
