@@ -23,6 +23,7 @@ func main() {
 	var mainMutex sync.Mutex
 	var chats = map[int64]ChatInterface{}
 	var settings Settings
+	var storage_ storage.Interface
 	bytes, fail := os.ReadFile(".yml")
 	if fail != nil {
 		log.Panic(fail.Error())
@@ -32,7 +33,7 @@ func main() {
 		log.Panic(fail.Error())
 	}
 	log.Println(settings)
-	s, fail := storage.NewPostgres(settings.Database.Arguments)
+	storage_, fail = storage.NewPostgres(settings.Database.Arguments)
 	if fail != nil {
 		log.Panic(fail.Error())
 	}
@@ -43,10 +44,7 @@ func main() {
 	update := tgbotapi.NewUpdate(0)
 	update.Timeout = settingsTimeout
 	channel := BotAPI.GetUpdatesChan(update)
-	//admins, fail := NewAdmins(s)
-	//if fail != nil {
-	//	log.Panic(fail)
-	//}
+
 	for {
 		select {
 		case message := <-channel:
@@ -61,26 +59,36 @@ func main() {
 			mainMutex.Lock()
 			chat, found := chats[message.Message.Chat.ID]
 			if !found {
-				var id storage.ChatIdModel
-				if id, fail = s.UpdateChatByTg(message.Message.Chat.ID, message.Message.Chat.Title); fail != nil {
-					// TODO: пишем в лог, возможно обрабатываем ощибку недоступности БД
-					continue
-				}
-				baseChat := BaseChat{channel: make(chan tgbotapi.Update), db: id, tg: message.FromChat().ID}
 				switch message.Message.Chat.Type {
 				case privateChatType:
-					chat = PrivateChat{BaseChat: baseChat}
+					var model storage.UpsertUserByTgModel
+					model, fail = storage_.UpsertUserByTg(message.Message.Chat.ID, message.Message.Chat.Title)
+					chat = PrivateChat{BaseChat: BaseChat{
+						channel: make(chan tgbotapi.Update),
+						db:      model.Id,
+						tg:      message.FromChat().ID}}
 				case supergroupChatType:
+					var model storage.UpsertChatByTgModel
+					model, fail = storage_.UpsertChatByTg(message.Message.Chat.ID, message.Message.Chat.Title)
+					if fail != nil {
+						// TODO: пишем в лог, возможно обрабатываем ощибку недоступности БД
+						//continue
+					}
 					chat = SupergroupChat{
-						BaseChat: baseChat,
-						policies: []policy.Interface{policy.NewContains("asd")}}
+						BaseChat: BaseChat{
+							channel: make(chan tgbotapi.Update),
+							db:      model.Id,
+							tg:      message.FromChat().ID},
+						moderated: model.Moderated,
+						policies: []policy.Interface{policy.NewContains("asd"),
+							policy.Interface(policy.NewStartWith("ы"))}}
 				default:
 					// TODO: пишем в лог
 					continue
 				}
 				chats[message.FromChat().ID] = chat
 				log.Println("Chat " + strconv.FormatInt(message.FromChat().ID, 10) + " created")
-				go chat.routine(BotAPI, chats, &mainMutex, s)
+				go chat.routine(BotAPI, chats, &mainMutex, storage_)
 			}
 			mainMutex.Unlock()
 			chat.send(message)

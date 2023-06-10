@@ -22,5 +22,4 @@ func NewAdmins(arg storage.Interface) (Admins, error) {
 }
 
 func (a Admins) Get(id uint64) {
-	a.storage.LoadAdmins()
 }

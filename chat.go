@@ -25,8 +25,6 @@ type (
 		channel chan tgbotapi.Update
 		db      storage.ChatIdModel
 		tg      int64
-		//timeStart  time.Time
-		//timeFinish time.Time
 	}
 
 	// ChatInterface интерфейс чатов

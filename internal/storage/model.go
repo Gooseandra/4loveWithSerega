@@ -3,9 +3,10 @@ package storage
 const (
 	ChatModelTable = "chat"
 
-	ChatIDModelField   = "ID"
-	ChatNameModelField = "name"
-	ChatTgModelField   = "tg"
+	ChatIDModelField        = "ID"
+	ChatModeratedModelField = "moderated"
+	ChatNameModelField      = "name"
+	ChatTgModelField        = "tg"
 )
 
 type (
@@ -18,8 +19,11 @@ type (
 	ChatIdModel int32
 )
 
-type UserModel struct {
-	Name   string
-	Id, Tg uint64
-	Admin  uint32
-}
+type (
+	UserModel struct {
+		Name  string
+		Tg    int64
+		Id    int32
+		Admin int16
+	}
+)

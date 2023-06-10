@@ -3,11 +3,14 @@ package storage
 import "database/sql"
 
 const (
-	getAllAdmins = `select "ID", "name", "tg" from "user"`
-	postgresName = "postgres"
-	setChatByTg  = `insert into "` + ChatModelTable + `"("` + ChatNameModelField + `", "` +
-		ChatTgModelField + `") values($1,$2)` + ` on conflict ( "` + ChatTgModelField +
-		`") do update set "` + ChatNameModelField + `"=$1 returning "` + ChatIDModelField + `"`
+	getAllAdmins   = `select "ID", "name", "tg" from "user"`
+	postgresName   = "postgres"
+	upsertChatByTg = `insert into"` + ChatModelTable + `"("` + ChatNameModelField + `","` + ChatTgModelField + `","` +
+		ChatModeratedModelField + `")values($1,$2,0)on conflict("` + ChatTgModelField + `")do update set"` +
+		ChatNameModelField + `"=$1 returning"` + ChatIDModelField + `","` + ChatModeratedModelField + `"`
+	upsertUserByTg = `insert into"` + ChatModelTable + `"("` + ChatNameModelField + `","` + ChatTgModelField + `","` +
+		ChatModeratedModelField + `")values($1,$2,0)on conflict("` + ChatTgModelField + `")do update set"` +
+		ChatNameModelField + `"=$1 returning"` + ChatIDModelField + `","` + ChatModeratedModelField + `"`
 )
 
 type (
@@ -40,7 +43,11 @@ func (Postgres) LoadChats() ([]int64, error) {
 	return nil, nil
 }
 
-func (p Postgres) UpdateChatByTg(tg int64, name string) (id ChatIdModel, fail error) {
-	fail = p.handle.QueryRow(setChatByTg, name, tg).Scan(&id)
+func (p Postgres) UpsertChatByTg(tg int64, name string) (result UpsertChatByTgModel, fail error) {
+	fail = p.handle.QueryRow(upsertChatByTg, name, tg).Scan(&result.Id, &result.Moderated)
+	return
+}
+func (p Postgres) UpsertUserByTg(tg int64, name string) (result UpsertUserByTgModel, fail error) {
+	fail = p.handle.QueryRow(upsertUserByTg, name, tg).Scan(&result.Id, &result.Moderated)
 	return
 }
