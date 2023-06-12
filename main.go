@@ -26,6 +26,7 @@ func main() {
 	var storage_ storage.Interface
 	bytes, fail := os.ReadFile(".yml")
 	if fail != nil {
+		log.Println(fail.Error())
 		log.Panic(fail.Error())
 	}
 	fail = yaml.Unmarshal([]byte(bytes), &settings)

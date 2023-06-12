@@ -7,6 +7,9 @@ const (
 	ChatModeratedModelField = "moderated"
 	ChatNameModelField      = "name"
 	ChatTgModelField        = "tg"
+
+	UserModelTable = "user"
+	UserAdminField = "admin"
 )
 
 type (

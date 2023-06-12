@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"log"
 	"moderatorBot/internal/policy"
@@ -9,14 +8,6 @@ import (
 	"strconv"
 	"sync"
 	"time"
-)
-
-const (
-	MainStatus     = ChatStatus(iota)
-	TrainStatus    = ChatStatus(iota)
-	SettingsStatus = ChatStatus(iota)
-	nilStatus      = ChatStatus(iota)
-	showStatus     = ChatStatus(iota)
 )
 
 type (
@@ -53,7 +44,6 @@ func (bc BaseChat) send(update tgbotapi.Update) { bc.channel <- update }
 
 func (pc PrivateChat) routine(_ *tgbotapi.BotAPI, chats map[int64]ChatInterface, mainMutex *sync.Mutex, storage storage.Interface) {
 	lastMassageTime := time.After(time.Hour * 10)
-	status := nilStatus
 	for {
 		select {
 		case message := <-pc.channel:
@@ -61,16 +51,23 @@ func (pc PrivateChat) routine(_ *tgbotapi.BotAPI, chats map[int64]ChatInterface,
 			lastMassageTime = time.After(time.Hour * 10)
 			log.Println("MainStatus.Update")
 			if message.Message != nil {
-				fmt.Println(message.Message.Chat.Type)
-				switch status {
-				case nilStatus:
-					switch message.Message.Text {
-					case "/start":
-
-					}
-				case MainStatus:
-
+				if message.Message.Chat == nil {
+					// TODO: пишем в лог
+					continue
 				}
+				if message.Message.Chat.Type != privateChatType {
+					// TODO: пишем в лог
+					continue
+				}
+				switch message.Message.Text {
+				case "add admin":
+					tg, name := CreateAdmin(pc.tg, pc.channel)
+					storage.AddAdmins(tg, name)
+				case "add me":
+					BotAPI.Send(tgbotapi.NewMessage(message.Message.Chat.ID, "Сообщите приглашающему код:\n"+
+						strconv.Itoa(int(message.Message.Chat.ID))))
+				}
+
 			}
 
 		case <-lastMassageTime:
