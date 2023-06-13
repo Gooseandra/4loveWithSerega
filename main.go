@@ -75,14 +75,24 @@ func main() {
 						// TODO: пишем в лог, возможно обрабатываем ощибку недоступности БД
 						//continue
 					}
+					myPolicy, err := storage_.GetPolicy()
+					if err != nil {
+						//TODO: пишем в лог
+					}
+					var Contains []policy.Interface
+					for i := 0; i < len(myPolicy); i++ {
+						if myPolicy[i].Disc == "NewContains" {
+							Contains = append(Contains, policy.NewContains(myPolicy[i].Word))
+							log.Println(myPolicy[i].Word)
+						}
+					}
 					chat = SupergroupChat{
 						BaseChat: BaseChat{
 							channel: make(chan tgbotapi.Update),
 							db:      model.Id,
 							tg:      message.FromChat().ID},
 						moderated: model.Moderated,
-						policies: []policy.Interface{policy.NewContains("asd"),
-							policy.Interface(policy.NewStartWith("ы"))}}
+						policies:  Contains}
 				default:
 					// TODO: пишем в лог
 					continue

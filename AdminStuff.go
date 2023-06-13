@@ -4,6 +4,7 @@ import (
 	"errors"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"log"
+	"moderatorBot/internal/storage"
 	"strconv"
 )
 
@@ -14,6 +15,8 @@ const (
 
 	ConfirmText    = "Подтвердить"
 	NotConfirmText = "Повторный ввод"
+
+	NotAdminText = "Вы не являетесь админом"
 )
 
 var ConfirmationKeyboard = tgbotapi.NewReplyKeyboard(
@@ -28,6 +31,21 @@ func InputText(id int64, channel chan tgbotapi.Update, disc string) (string, err
 		return "", errors.New("Не то ввел, братишка")
 	}
 	return message.Message.Text, nil
+}
+
+func IsItAdmin(id int64, storage storage.Interface) bool {
+	admins, err := storage.LoadAdmins()
+	if err != nil {
+		//TODO: пришем в лог
+	}
+	for i := 0; i < len(admins); i++ {
+		if admins[i].Tg == id {
+			log.Println("admin")
+			return true
+		}
+	}
+	log.Println("not admin")
+	return false
 }
 
 func CreateAdmin(id int64, channel chan tgbotapi.Update) (int64, string) {
@@ -52,5 +70,14 @@ func CreateAdmin(id int64, channel chan tgbotapi.Update) (int64, string) {
 			}
 			return int64(temp), name
 		}
+	}
+}
+
+func AdminAddition(id int64, channel chan tgbotapi.Update, storage storage.Interface) {
+	if IsItAdmin(id, storage) == true {
+		tg, name := CreateAdmin(id, channel)
+		storage.AddAdmins(tg, name)
+	} else {
+		BotAPI.Send(tgbotapi.NewMessage(id, NotAdminText))
 	}
 }

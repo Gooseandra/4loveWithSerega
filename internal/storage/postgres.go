@@ -16,6 +16,9 @@ const (
 		ChatNameModelField + `"=$1 returning"` + ChatIDModelField + `","` + ChatModeratedModelField + `"`
 	addAdmin = `insert into "` + UserModelTable + `"("` + ChatTgModelField + `","` + ChatNameModelField + `","` +
 		UserAdminField + `")values($1,$2,$3)`
+	addBannedWord = `insert into "` + BannedWordModelTable + `"("` + BannedWordWordField + `","` + BannedWordDiscField +
+		`")values($1,$2)`
+	getPolicy = `select * from ` + BannedWordModelTable
 )
 
 type (
@@ -30,13 +33,13 @@ func NewPostgres(args string) (postgres Postgres, fail error) {
 }
 
 func (p Postgres) LoadAdmins() (items []ChatModel, fail error) {
-	rows, fail := p.handle.Query(getAllAdmins)
+	rows, fail := p.handle.Query(`select "tg" from "user"`)
 	if fail != nil {
 		return
 	}
 	for rows.Next() {
 		var model ChatModel
-		if fail = rows.Scan(&model.ID, &model.Name, &model.Tg); fail != nil {
+		if fail = rows.Scan(&model.Tg); fail != nil {
 			return
 		}
 		items = append(items, model)
@@ -63,4 +66,27 @@ func (p Postgres) AddAdmins(id int64, name string) (sql.Result, error) {
 		log.Println(err.Error())
 	}
 	return result, err
+}
+
+func (p Postgres) AddBannedWord(word string, disc string) (sql.Result, error) {
+	result, err := p.handle.Exec(addBannedWord, word, disc)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	return result, err
+}
+
+func (p Postgres) GetPolicy() (items []BannedWordModel, fail error) {
+	rows, err := p.handle.Query(getPolicy)
+	if err != nil {
+		//TODO: какие то действия
+	}
+	for rows.Next() {
+		var model BannedWordModel
+		if fail = rows.Scan(&model.id, &model.Word, &model.Disc); fail != nil {
+			return
+		}
+		items = append(items, model)
+	}
+	return
 }

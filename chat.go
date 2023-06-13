@@ -61,8 +61,21 @@ func (pc PrivateChat) routine(_ *tgbotapi.BotAPI, chats map[int64]ChatInterface,
 				}
 				switch message.Message.Text {
 				case "add admin":
-					tg, name := CreateAdmin(pc.tg, pc.channel)
-					storage.AddAdmins(tg, name)
+					AdminAddition(pc.tg, pc.channel, storage)
+				case "ban word":
+					if IsItAdmin(pc.tg, storage) == true {
+						banWord, err := InputText(pc.tg, pc.channel, "Введите запрещённое слово")
+						if err != nil {
+							//TODO: какая то реакция
+						}
+						disc, err := InputText(pc.tg, pc.channel, "NewContains/NewStartWith?")
+						if err != nil {
+							//TODO: какая то реакция
+						}
+						storage.AddBannedWord(banWord, disc)
+					} else {
+						BotAPI.Send(tgbotapi.NewMessage(pc.tg, "Вы не являетесь админом"))
+					}
 				case "add me":
 					BotAPI.Send(tgbotapi.NewMessage(message.Message.Chat.ID, "Сообщите приглашающему код:\n"+
 						strconv.Itoa(int(message.Message.Chat.ID))))

@@ -10,6 +10,10 @@ const (
 
 	UserModelTable = "user"
 	UserAdminField = "admin"
+
+	BannedWordModelTable = "bannedwords"
+	BannedWordWordField  = "word"
+	BannedWordDiscField  = "disc"
 )
 
 type (
@@ -20,6 +24,14 @@ type (
 	}
 
 	ChatIdModel int32
+)
+
+type (
+	BannedWordModel struct {
+		id   int64
+		Word string
+		Disc string
+	}
 )
 
 type (

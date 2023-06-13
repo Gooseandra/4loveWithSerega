@@ -23,6 +23,11 @@ CREATE TABLE "ban"(
 "startUser" timestamp not null,
 "startReason" varchar(255)  not null,
 "tg" bigint not null);
+
+CREATE TABLE "bannedwords"(
+"ID" serial primary key,
+"word" varchar(25),
+"disc" varchar(25));
 -- +goose StatementEnd
 
 -- +goose Down
