@@ -14,23 +14,22 @@ CREATE TABLE "user"(
 
 CREATE TABLE "ban"(
 "ID" serial primary key,
-"chat" int not null,
-"user" int not null,
-"finishTime" int,
-"finishUser" timestamp,
-"finishReason" varchar(255),
-"startTime" int not null,
-"startUser" timestamp not null,
-"startReason" varchar(255)  not null,
-"tg" bigint not null);
+"warning" int,
+"banstart" time,
+"banend" time,
+"banreason" varchar(200),
+"tg" int);
 
 create table "bannedwords"(
     "id" serial primary key,
     "word" varchar(60) not null
 )
---
--- Дамп данных таблицы `words`
---
+
+create table "okurl"
+(
+    "id" serial primary key,
+    "url" varchar(300) not null
+)
 
 INSERT INTO "bannedwords" ("id", "word") VALUES
     (1315, 'spam'),

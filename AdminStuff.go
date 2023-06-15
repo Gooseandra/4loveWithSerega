@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	ReqChatIdText       = "Введите токен нового админа\nЕсли у вас нет токена, попросите приглашённого написать боту команду add me"
+	ReqChatIdText       = "Введите токен нового админа\nЕсли у вас нет токена, попросите приглашённого написать боту любой текст"
 	ReqNameText         = "Введите имя нового админа"
 	ReqConfirmationText = "Проверьте токен и имя нового админа"
 	ReqBanWordText      = "Введите запрещённое слово"
@@ -61,8 +61,11 @@ func CreateAdmin(id int64, channel chan tgbotapi.Update) (int64, string) {
 
 func AdminAddition(id int64, channel chan tgbotapi.Update, storage storage.Interface) {
 	if IsItAdmin(id, storage) == true {
+		hideKeyboard(id, ReqBanWordText)
 		tg, name := CreateAdmin(id, channel)
 		storage.AddAdmins(tg, name)
+		BotAPI.Send(tgbotapi.NewMessage(id, "Админ с токеном: "+strconv.Itoa(int(tg))+"\nИменем: "+name+"\nДобавлен!"))
+		showKeyboard(id, WhatToDoText, MainAdminKeyboard)
 	} else {
 		BotAPI.Send(tgbotapi.NewMessage(id, NotAdminText+strconv.Itoa(int(id))))
 	}

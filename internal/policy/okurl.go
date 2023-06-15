@@ -10,7 +10,7 @@ type StartWith struct {
 	text string
 }
 
-func NewStartWith(text string) Contains { return Contains{text: text} }
+func okUrl(text string) Contains { return Contains{text: text} }
 
 func (sw StartWith) Check(update tgbotapi.Update) error {
 	if update.Message != nil {
