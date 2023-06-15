@@ -18,7 +18,7 @@ const (
 		UserAdminField + `")values($1,$2,$3)`
 	addBannedWord = `insert into "` + BannedWordModelTable + `"("` + BannedWordWordField + `","` + BannedWordDiscField +
 		`")values($1,$2)`
-	getPolicy = `select * from ` + BannedWordModelTable
+	getPolicy = `select "word" from ` + BannedWordModelTable
 )
 
 type (
@@ -68,25 +68,25 @@ func (p Postgres) AddAdmins(id int64, name string) (sql.Result, error) {
 	return result, err
 }
 
-func (p Postgres) AddBannedWord(word string, disc string) (sql.Result, error) {
-	result, err := p.handle.Exec(addBannedWord, word, disc)
+func (p Postgres) AddBannedWord(word string) (sql.Result, error) {
+	result, err := p.handle.Exec(addBannedWord, word)
 	if err != nil {
 		log.Println(err.Error())
 	}
 	return result, err
 }
 
-func (p Postgres) GetPolicy() (items []BannedWordModel, fail error) {
+func (p Postgres) GetPolicy() (items []string, fail error) {
 	rows, err := p.handle.Query(getPolicy)
 	if err != nil {
 		//TODO: какие то действия
 	}
 	for rows.Next() {
-		var model BannedWordModel
-		if fail = rows.Scan(&model.id, &model.Word, &model.Disc); fail != nil {
+		var word string
+		if fail = rows.Scan(&word); fail != nil {
 			return
 		}
-		items = append(items, model)
+		items = append(items, word)
 	}
 	return
 }

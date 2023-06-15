@@ -19,10 +19,13 @@ const (
 
 var BotAPI *tgbotapi.BotAPI
 
+var ContainsPolicy []policy.Interface
+
 func main() {
 	var mainMutex sync.Mutex
 	var chats = map[int64]ChatInterface{}
 	var settings Settings
+
 	var storage_ storage.Interface
 	bytes, fail := os.ReadFile(".yml")
 	if fail != nil {
@@ -79,12 +82,9 @@ func main() {
 					if err != nil {
 						//TODO: пишем в лог
 					}
-					var Contains []policy.Interface
 					for i := 0; i < len(myPolicy); i++ {
-						if myPolicy[i].Disc == "NewContains" {
-							Contains = append(Contains, policy.NewContains(myPolicy[i].Word))
-							log.Println(myPolicy[i].Word)
-						}
+						ContainsPolicy = append(ContainsPolicy, policy.NewContains(myPolicy[i]))
+						log.Println(myPolicy[i])
 					}
 					chat = SupergroupChat{
 						BaseChat: BaseChat{
@@ -92,7 +92,7 @@ func main() {
 							db:      model.Id,
 							tg:      message.FromChat().ID},
 						moderated: model.Moderated,
-						policies:  Contains}
+						policies:  ContainsPolicy}
 				default:
 					// TODO: пишем в лог
 					continue

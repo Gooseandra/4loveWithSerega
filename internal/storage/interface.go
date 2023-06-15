@@ -9,8 +9,8 @@ type (
 		UpsertChatByTg(int64, string) (UpsertChatByTgModel, error)
 		UpsertUserByTg(int64, string) (UpsertUserByTgModel, error)
 		AddAdmins(int64, string) (sql.Result, error)
-		AddBannedWord(string, string) (sql.Result, error)
-		GetPolicy() ([]BannedWordModel, error)
+		AddBannedWord(string) (sql.Result, error)
+		GetPolicy() ([]string, error)
 	}
 
 	UpsertChatByTgModel struct {
