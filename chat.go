@@ -64,6 +64,10 @@ func (pc PrivateChat) routine(_ *tgbotapi.BotAPI, chats map[int64]ChatInterface,
 					AdminAddition(pc.tg, pc.channel, storage)
 				case AddBannedWordText:
 					BanWordAddition(pc.tg, pc.channel, storage, ContainsPolicy)
+				case SetBanTimeText:
+					setBantime(pc.tg, storage, pc.channel)
+				case SetWarningsText:
+					SetWarningsVal(pc.tg, storage, pc.channel)
 				default:
 					showCmd := tgbotapi.NewMessage(pc.tg, WhatToDoText)
 					showCmd.ReplyMarkup = MainAdminKeyboard
@@ -100,11 +104,21 @@ func (sc SupergroupChat) routine(botApi *tgbotapi.BotAPI, chats map[int64]ChatIn
 					// TODO: пишем в лог
 					continue
 				}
-
+				banned := storage.GetBanList()
+				for i := 0; i < len(banned); i++ {
+					temp, _ := strconv.Atoi(banned[i])
+					if message.Message.From.ID == int64(temp) {
+						dm := tgbotapi.NewDeleteMessage(message.Message.Chat.ID, message.Message.MessageID)
+						if _, fail := botApi.Request(dm); fail != nil {
+							// TODO: сохраняем кучу данных в лог
+						}
+					}
+				}
 				// Цикл проверок
 				for _, v := range sc.policies {
 					if v.Check(message) != nil {
 						// Если проверка сработала, то удаляем сообщение
+						storage.Crime(message.Message.From.ID, panishments.Warnings, panishments.Bandur)
 						dm := tgbotapi.NewDeleteMessage(message.Message.Chat.ID, message.Message.MessageID)
 						if _, fail := botApi.Request(dm); fail != nil {
 							// TODO: сохраняем кучу данных в лог

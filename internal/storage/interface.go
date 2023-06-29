@@ -1,6 +1,9 @@
 package storage
 
-import "database/sql"
+import (
+	"database/sql"
+	"time"
+)
 
 type (
 	Interface interface {
@@ -11,6 +14,13 @@ type (
 		AddAdmins(int64, string) (sql.Result, error)
 		AddBannedWord(string) (sql.Result, error)
 		GetPolicy() ([]string, error)
+		Crime(int64, int, time.Duration)
+		Unban(int64, time.Duration)
+		GetBanList() []string
+		SetWarnings(int)
+		SetBanTime(int)
+		GetWarnings() int
+		GetBanTime() time.Duration
 	}
 
 	UpsertChatByTgModel struct {

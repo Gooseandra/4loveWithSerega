@@ -4,7 +4,13 @@ import (
 	"errors"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"moderatorBot/internal/storage"
+	"time"
 )
+
+var panishments struct {
+	Warnings int
+	Bandur   time.Duration
+}
 
 func showKeyboard(id int64, disc string, kb tgbotapi.ReplyKeyboardMarkup) {
 	showCmd := tgbotapi.NewMessage(id, disc)

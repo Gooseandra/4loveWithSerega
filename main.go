@@ -49,6 +49,9 @@ func main() {
 	update.Timeout = settingsTimeout
 	channel := BotAPI.GetUpdatesChan(update)
 
+	panishments.Bandur = storage_.GetBanTime()
+	panishments.Warnings = storage_.GetWarnings()
+
 	for {
 		select {
 		case message := <-channel:
@@ -84,7 +87,6 @@ func main() {
 					}
 					for i := 0; i < len(myPolicy); i++ {
 						ContainsPolicy = append(ContainsPolicy, policy.NewContains(myPolicy[i]))
-						log.Println(myPolicy[i])
 					}
 					chat = SupergroupChat{
 						BaseChat: BaseChat{

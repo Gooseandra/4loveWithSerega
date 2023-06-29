@@ -15,8 +15,8 @@ CREATE TABLE "user"(
 CREATE TABLE "ban"(
 "ID" serial primary key,
 "warning" int,
-"banstart" time,
-"banend" time,
+"banstart" timestamp,
+"banendfor" interval,
 "banreason" varchar(200),
 "tg" int);
 
@@ -25,11 +25,17 @@ create table "bannedwords"(
     "word" varchar(60) not null
 )
 
+create table "panishments"(
+    "maxwarnings" int2,
+    "bantime" interval
+)
+
 create table "okurl"
 (
     "id" serial primary key,
     "url" varchar(300) not null
 )
+
 
 INSERT INTO "bannedwords" ("id", "word") VALUES
     (1315, 'spam'),

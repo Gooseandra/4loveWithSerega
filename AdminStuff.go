@@ -6,6 +6,7 @@ import (
 	"moderatorBot/internal/policy"
 	"moderatorBot/internal/storage"
 	"strconv"
+	"time"
 )
 
 const (
@@ -13,6 +14,8 @@ const (
 	ReqNameText         = "Введите имя нового админа"
 	ReqConfirmationText = "Проверьте токен и имя нового админа"
 	ReqBanWordText      = "Введите запрещённое слово"
+	ReqWarningsValText  = "Введите количество предупреждений перед мутом пользователя"
+	ReqBanTimeText      = "Введите врмя мута в минутах"
 
 	ConfirmText    = "Подтвердить"
 	NotConfirmText = "Повторный ввод"
@@ -22,13 +25,15 @@ const (
 
 	AddBannedWordText = "Добавить запрещённое слово"
 	AddAdminText      = "Добавить админа"
+	SetBanTimeText    = "Установить время мута"
+	SetWarningsText   = "Установить количество предупреждений"
 
 	WhatToDoText = "Что делать будем?"
 )
 
 var MainAdminKeyboard = tgbotapi.NewReplyKeyboard(
-	tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(AddBannedWordText)),
-	tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(AddAdminText)),
+	tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(AddBannedWordText), tgbotapi.NewKeyboardButton(SetBanTimeText)),
+	tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(AddAdminText), tgbotapi.NewKeyboardButton(SetWarningsText)),
 )
 
 var ConfirmationKeyboard = tgbotapi.NewReplyKeyboard(
@@ -84,5 +89,56 @@ func BanWordAddition(id int64, channel chan tgbotapi.Update, storage storage.Int
 		showKeyboard(id, WhatToDoText, MainAdminKeyboard)
 	} else {
 		BotAPI.Send(tgbotapi.NewMessage(id, NotAdminText+strconv.Itoa(int(id))))
+	}
+}
+
+func SetWarningsVal(id int64, storage storage.Interface, channel chan tgbotapi.Update) {
+	if IsItAdmin(id, storage) == true {
+		hideKeyboard(id, ReqWarningsValText)
+		panishments.Warnings = trollcheck(id, channel)
+		storage.SetWarnings(panishments.Warnings)
+		showKeyboard(id, WhatToDoText, MainAdminKeyboard)
+	}
+}
+
+func setBantime(id int64, storage storage.Interface, channel chan tgbotapi.Update) {
+	if IsItAdmin(id, storage) == true {
+		hideKeyboard(id, ReqBanTimeText)
+		panishments.Bandur = time.Minute * time.Duration(trollcheck(id, channel))
+		storage.SetBanTime(trollcheck(id, channel))
+		showKeyboard(id, WhatToDoText, MainAdminKeyboard)
+	}
+}
+
+func trollcheck(id int64, channel chan tgbotapi.Update) int {
+	for {
+		val, err := InputText(id, channel, "")
+		if err != nil {
+			//TODO:я обязательно сделаю все todo...
+		}
+		if strconv.Atoi(val); err != nil {
+			BotAPI.Send(tgbotapi.NewMessage(id, "ЧИСЛО! ЧИСЛО Я СКАЗАЛ!"))
+			BotAPI.Send(tgbotapi.NewMessage(id, "ЛЮДИ, ВЫ ВООБЩЕ УМЕЕТЕ ОТЛИЧАТЬ ЧИСЛО ОТ ОСТАЛЬНЫХ СИМВОЛОВ?!"))
+			BotAPI.Send(tgbotapi.NewMessage(id, "Ну реально, не тупите, люди, прошу число, значит число!"))
+			BotAPI.Send(tgbotapi.NewMessage(id, "Если бы я не проверил, ты бы всё сломал"))
+			BotAPI.Send(tgbotapi.NewMessage(id, "ВСЁ СЛОМАЛ!"))
+			BotAPI.Send(tgbotapi.NewMessage(id, "Я БЫ УМЕР!"))
+			BotAPI.Send(tgbotapi.NewMessage(id, "Ладно, я бы не умер, надо было бы всего лишь перезапустить..."))
+			BotAPI.Send(tgbotapi.NewMessage(id, "Но всё равно! ОНО ТЕБЕ НАДО!"))
+			BotAPI.Send(tgbotapi.NewMessage(id, "Поэтому введи пожалуйста теперь число и не беси меня"))
+		} else {
+			intval, _ := strconv.Atoi(val)
+			if intval <= 0 {
+				BotAPI.Send(tgbotapi.NewMessage(id, "БОЖЕ, СЕРЬЁЗНО?!"))
+				BotAPI.Send(tgbotapi.NewMessage(id, "ЭТО ТЫ ТИПА РЕШИЛ ТАК ПОТЕСТИТЬ?"))
+				BotAPI.Send(tgbotapi.NewMessage(id, "Ооо... А что же будет, если я введу отрицательное число? Хм..."))
+				BotAPI.Send(tgbotapi.NewMessage(id, "А НИЧЕГО НЕ БУДЕТ! НИ-ЧЕ-ГО!"))
+				BotAPI.Send(tgbotapi.NewMessage(id, "Возможно, не отрицательное, а ноль, проверка одна и та же, я хз"))
+				BotAPI.Send(tgbotapi.NewMessage(id, "А, ты ввёл "+val+". Как я и сказал, это не подходит"))
+				BotAPI.Send(tgbotapi.NewMessage(id, "Хватит меня ломать! Я и так на добром слове держусь"))
+			} else {
+				return intval
+			}
+		}
 	}
 }

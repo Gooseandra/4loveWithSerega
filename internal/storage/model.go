@@ -14,6 +14,8 @@ const (
 	BannedWordModelTable = "bannedwords"
 	BannedWordWordField  = "word"
 	BannedWordDiscField  = "disc"
+
+	BanWarningsField = "warning"
 )
 
 type (
