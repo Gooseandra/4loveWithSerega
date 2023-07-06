@@ -20,17 +20,17 @@ CREATE TABLE "ban"(
 "banreason" varchar(200),
 "tg" int);
 
-create table "bannedwords"(
+CREATE TABLE "bannedwords"(
     "id" serial primary key,
     "word" varchar(60) not null
 );
 
-create table "panishments"(
+CREATE TABLE "panishments"(
     "maxwarnings" int2,
     "bantime" int
 );
 
-create table "okurl"
+CREATE TABLE "okurl"
 (
     "id" serial primary key,
     "url" varchar(300) not null
