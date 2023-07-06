@@ -16,7 +16,7 @@ CREATE TABLE "ban"(
 "ID" serial primary key,
 "warning" int,
 "banstart" timestamp,
-"banendfor" interval,
+"banendfor" int,
 "banreason" varchar(200),
 "tg" int);
 
@@ -27,7 +27,7 @@ create table "bannedwords"(
 
 create table "panishments"(
     "maxwarnings" int2,
-    "bantime" interval
+    "bantime" int
 )
 
 create table "okurl"

@@ -99,15 +99,16 @@ func (p Postgres) GetPolicy() (items []string, fail error) {
 }
 
 func (p Postgres) Crime(id int64, warnings int, dur time.Duration) {
-	var temp string
+	var myid string
 	row := p.handle.QueryRow(`select "ID" from "ban" where "tg" = $1`, id)
-	row.Scan(&temp)
-	if temp == "" {
+	row.Scan(&myid)
+	if myid == "" {
 		_, err := p.handle.Exec(addCriminal, id, 1)
 		if err != nil {
 			log.Println(err.Error())
 		}
 	} else {
+		var temp string
 		row = p.handle.QueryRow(`select "warning" from "ban" where "tg" = $1`, id)
 		row.Scan(&temp)
 		warningsVal, err := strconv.Atoi(temp)
@@ -116,7 +117,7 @@ func (p Postgres) Crime(id int64, warnings int, dur time.Duration) {
 		}
 		warningsVal += 1
 		if warningsVal >= warnings {
-			_, err := p.handle.Exec(setBan, time.Now().Format("2006-01-02 15:04:05"), temp, "", id)
+			_, err := p.handle.Exec(setBan, time.Now().Format("2006-01-02 15:04:05"), dur/60000000000, "", id)
 			if err != nil {
 				log.Println(err.Error())
 			}
@@ -135,7 +136,7 @@ func (p Postgres) Unban(tg int64, dur time.Duration) {
 }
 
 func (p Postgres) GetBanList() []string {
-	row, err := p.handle.Query(`select "tg" from "ban"`)
+	row, err := p.handle.Query(`select "tg" from "ban" where "banstart" is not null`)
 	if err != nil {
 		//TODO: когда нибудь здесть что то будет...
 	}
@@ -153,19 +154,18 @@ func (p Postgres) SetWarnings(val int) {
 }
 
 func (p Postgres) SetBanTime(val int) {
-	p.handle.Exec(`update "panishments" set "bantime" = $1`, val*60)
+	p.handle.Exec(`update "panishments" set "bantime" = $1`, val)
 }
 
 func (p Postgres) GetBanTime() time.Duration {
 	row := p.handle.QueryRow(`select bantime from panishments`)
 	var temp string
-	row.Scan(&temp)
-	t, err := time.Parse("01:02:03 01:02:03", temp) // тут надо получить duration
-	log.Println(t)
+	err := row.Scan(&temp)
 	if err != nil {
 		log.Println(err.Error())
 	}
-	return time.Hour
+	l, _ := strconv.Atoi(temp)
+	return time.Minute * time.Duration(l)
 }
 
 func (p Postgres) GetWarnings() int {
