@@ -23,18 +23,18 @@ CREATE TABLE "ban"(
 create table "bannedwords"(
     "id" serial primary key,
     "word" varchar(60) not null
-)
+);
 
 create table "panishments"(
     "maxwarnings" int2,
     "bantime" int
-)
+);
 
 create table "okurl"
 (
     "id" serial primary key,
     "url" varchar(300) not null
-)
+);
 
 
 INSERT INTO "bannedwords" ("id", "word") VALUES
