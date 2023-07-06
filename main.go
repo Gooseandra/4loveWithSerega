@@ -14,7 +14,7 @@ import (
 
 const (
 	privateChatType    = "private"
-	supergroupChatType = "supergroup"
+	supergroupChatType = "group"
 )
 
 var BotAPI *tgbotapi.BotAPI
@@ -63,6 +63,7 @@ func main() {
 				// TODO: пишем в лог
 				continue
 			}
+			log.Println(message.Message.Chat.Type)
 			mainMutex.Lock()
 			chat, found := chats[message.Message.Chat.ID]
 			if !found {

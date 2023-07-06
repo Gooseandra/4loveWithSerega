@@ -162,7 +162,7 @@ func (p Postgres) GetBanTime() time.Duration {
 	var temp string
 	err := row.Scan(&temp)
 	if err != nil {
-		log.Println(err.Error())
+		log.Println(err.Error() + "\nGetBanTime")
 	}
 	l, _ := strconv.Atoi(temp)
 	return time.Minute * time.Duration(l)
