@@ -14,7 +14,7 @@ import (
 
 const (
 	privateChatType    = "private"
-	supergroupChatType = "supergroup"
+	supergroupChatType = "group"
 )
 
 var BotAPI *tgbotapi.BotAPI
