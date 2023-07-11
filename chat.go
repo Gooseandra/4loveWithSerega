@@ -68,6 +68,10 @@ func (pc PrivateChat) routine(_ *tgbotapi.BotAPI, chats map[int64]ChatInterface,
 					setBantime(pc.tg, storage, pc.channel)
 				case SetWarningsText:
 					SetWarningsVal(pc.tg, storage, pc.channel)
+				case GetSettingsText:
+					GetPanishments(pc.tg, storage)
+				case DeleteBannedWordText:
+					DeleteBannedWord(pc.tg, pc.channel, storage)
 				default:
 					showCmd := tgbotapi.NewMessage(pc.tg, WhatToDoText)
 					showCmd.ReplyMarkup = MainAdminKeyboard

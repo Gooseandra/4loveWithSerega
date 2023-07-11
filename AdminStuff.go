@@ -23,17 +23,20 @@ const (
 
 	NotAdminText = "Вы не являетесь админом\nЕсли вы хотите, чтобы вас назначили админом, сообщите приглашающему код:\n"
 
-	AddBannedWordText = "Добавить запрещённое слово"
-	AddAdminText      = "Добавить админа"
-	SetBanTimeText    = "Установить время мута"
-	SetWarningsText   = "Установить количество предупреждений"
+	AddBannedWordText    = "Добавить запрещённое слово"
+	AddAdminText         = "Добавить админа"
+	SetBanTimeText       = "Установить время мута"
+	SetWarningsText      = "Установить количество предупреждений"
+	GetSettingsText      = "Узнать настройки"
+	DeleteBannedWordText = "Удалить запрещённое слово"
 
 	WhatToDoText = "Что делать будем?"
 )
 
 var MainAdminKeyboard = tgbotapi.NewReplyKeyboard(
 	tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(AddBannedWordText), tgbotapi.NewKeyboardButton(SetBanTimeText)),
-	tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(AddAdminText), tgbotapi.NewKeyboardButton(SetWarningsText)),
+	tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(DeleteBannedWordText), tgbotapi.NewKeyboardButton(SetWarningsText)),
+	tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(AddAdminText), tgbotapi.NewKeyboardButton(GetSettingsText)),
 )
 
 var ConfirmationKeyboard = tgbotapi.NewReplyKeyboard(
@@ -139,6 +142,27 @@ func trollcheck(id int64, channel chan tgbotapi.Update) int {
 			} else {
 				return intval
 			}
+		}
+	}
+}
+
+func GetPanishments(id int64, storage storage.Interface) {
+	if IsItAdmin(id, storage) == true {
+		war, ban := storage.GetPanishments()
+		BotAPI.Send(tgbotapi.NewMessage(id, "Время мута (минуты): "+ban+"\nКоличество предупреждений: "+war))
+	}
+}
+
+func DeleteBannedWord(id int64, channel chan tgbotapi.Update, storage storage.Interface) {
+	if IsItAdmin(id, storage) == true {
+		word, err := InputText(id, channel, "Введите слово для удаления")
+		if err != nil {
+			log.Println(err.Error())
+		}
+		if storage.DeleteBannedWord(word) == true {
+			BotAPI.Send(tgbotapi.NewMessage(id, "'"+word+"' удалено"))
+		} else {
+			BotAPI.Send(tgbotapi.NewMessage(id, "Слово '"+word+"' не найдено"))
 		}
 	}
 }

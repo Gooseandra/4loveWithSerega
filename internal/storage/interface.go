@@ -21,6 +21,9 @@ type (
 		SetBanTime(int)
 		GetWarnings() int
 		GetBanTime() time.Duration
+		GetUrls() []string
+		GetPanishments() (string, string)
+		DeleteBannedWord(string) bool
 	}
 
 	UpsertChatByTgModel struct {

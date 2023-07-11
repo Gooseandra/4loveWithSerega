@@ -18,13 +18,12 @@ const (
 		ChatNameModelField + `"=$1 returning"` + ChatIDModelField + `","` + ChatModeratedModelField + `"`
 	addAdmin = `insert into "` + UserModelTable + `"("` + ChatTgModelField + `","` + ChatNameModelField + `","` +
 		UserAdminField + `")values($1,$2,$3)`
-	addBannedWord = `insert into "` + BannedWordModelTable + `"("` + BannedWordWordField + `","` + BannedWordDiscField +
-		`")values($1,$2)`
-	getPolicy   = `select "word" from ` + BannedWordModelTable
-	getCriminal = `select "ID" from "ban" where` + ChatTgModelField + `= $1`
-	addCriminal = `insert into "ban"("` + ChatTgModelField + `","` + BanWarningsField + `")values($1,$2)`
-	getWarnings = `select "` + BanWarningsField + `fron "ban" where"` + ChatTgModelField + `" = $1`
-	setBan      = `update "ban" set "warning" = 0, "banstart" = $1, "banendfor" = $2, banreason = $3 where
+	addBannedWord = `insert into "` + BannedWordModelTable + `" ("` + BannedWordWordField + `")values($1)`
+	getPolicy     = `select "word" from ` + BannedWordModelTable
+	getCriminal   = `select "ID" from "ban" where` + ChatTgModelField + `= $1`
+	addCriminal   = `insert into "ban"("` + ChatTgModelField + `","` + BanWarningsField + `")values($1,$2)`
+	getWarnings   = `select "` + BanWarningsField + `fron "ban" where"` + ChatTgModelField + `" = $1`
+	setBan        = `update "ban" set "warning" = 0, "banstart" = $1, "banendfor" = $2, banreason = $3 where
 tg = $4`
 )
 
@@ -174,6 +173,43 @@ func (p Postgres) GetWarnings() int {
 	row.Scan(&temp)
 	r, _ := strconv.Atoi(temp)
 	return r
+}
+
+func (p Postgres) GetUrls() []string {
+	row, err := p.handle.Query(`select "url" from okurl`)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	var temp string
+	var r []string
+	for row.Next() {
+		row.Scan(&temp)
+		r = append(r, temp)
+	}
+	return r
+}
+
+func (p Postgres) GetPanishments() (string, string) {
+	row := p.handle.QueryRow(`select maxwarnings from panishments`)
+	var warnings string
+	row.Scan(&warnings)
+	row = p.handle.QueryRow(`select "bantime" from "panishments"`)
+	var bantime string
+	row.Scan(&bantime)
+	return warnings, bantime
+}
+
+func (p Postgres) DeleteBannedWord(word string) bool {
+	r, err := p.handle.Exec(`delete from "bannedwords" where "word" = $1`, word)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	if c, err := r.RowsAffected(); err != nil {
+		log.Println(err.Error())
+	} else if c != 0 {
+		return true
+	}
+	return false
 }
 
 //time.Now().Local().Add(time.Hour * time.Duration(Hours) +

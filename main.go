@@ -14,12 +14,13 @@ import (
 
 const (
 	privateChatType    = "private"
-	supergroupChatType = "group"
+	supergroupChatType = "supergroup"
 )
 
 var BotAPI *tgbotapi.BotAPI
 
 var ContainsPolicy []policy.Interface
+var UrlPolicy []policy.Interface
 
 func main() {
 	var mainMutex sync.Mutex
@@ -83,11 +84,15 @@ func main() {
 						//continue
 					}
 					myPolicy, err := storage_.GetPolicy()
+					myUrls := storage_.GetUrls()
 					if err != nil {
 						//TODO: пишем в лог
 					}
 					for i := 0; i < len(myPolicy); i++ {
 						ContainsPolicy = append(ContainsPolicy, policy.NewContains(myPolicy[i]))
+					}
+					for i := 0; i < len(myUrls); i++ {
+						ContainsPolicy = append(ContainsPolicy, policy.NewOkUrl(myUrls[i]))
 					}
 					chat = SupergroupChat{
 						BaseChat: BaseChat{
