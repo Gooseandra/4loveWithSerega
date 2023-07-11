@@ -77,6 +77,7 @@ func main() {
 						db:      model.Id,
 						tg:      message.FromChat().ID}}
 				case supergroupChatType:
+					log.Println("okok")
 					var model storage.UpsertChatByTgModel
 					model, fail = storage_.UpsertChatByTg(message.Message.Chat.ID, message.Message.Chat.Title)
 					if fail != nil {
