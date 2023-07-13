@@ -14,7 +14,8 @@ import (
 
 const (
 	privateChatType    = "private"
-	supergroupChatType = "group"
+	supergroupChatType = "supergroup"
+	groutChatType      = "group"
 )
 
 var BotAPI *tgbotapi.BotAPI
@@ -68,15 +69,14 @@ func main() {
 			mainMutex.Lock()
 			chat, found := chats[message.Message.Chat.ID]
 			if !found {
-				switch message.Message.Chat.Type {
-				case privateChatType:
+				if message.Message.Chat.Type == privateChatType {
 					var model storage.UpsertUserByTgModel
 					model, fail = storage_.UpsertUserByTg(message.Message.Chat.ID, message.Message.Chat.Title)
 					chat = PrivateChat{BaseChat: BaseChat{
 						channel: make(chan tgbotapi.Update),
 						db:      model.Id,
 						tg:      message.FromChat().ID}}
-				case supergroupChatType:
+				} else if message.Message.Chat.Type == supergroupChatType || message.Message.Chat.Type == groutChatType {
 					log.Println("okok")
 					var model storage.UpsertChatByTgModel
 					model, fail = storage_.UpsertChatByTg(message.Message.Chat.ID, message.Message.Chat.Title)
@@ -102,7 +102,7 @@ func main() {
 							tg:      message.FromChat().ID},
 						moderated: model.Moderated,
 						policies:  ContainsPolicy}
-				default:
+				} else {
 					// TODO: пишем в лог
 					continue
 				}
