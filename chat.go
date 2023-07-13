@@ -104,7 +104,7 @@ func (sc SupergroupChat) routine(botApi *tgbotapi.BotAPI, chats map[int64]ChatIn
 					// TODO: пишем в лог
 					continue
 				}
-				if message.Message.Chat.Type != supergroupChatType {
+				if message.Message.Chat.Type != supergroupChatType && message.Message.Chat.Type != groutChatType {
 					// TODO: пишем в лог
 					continue
 				}
