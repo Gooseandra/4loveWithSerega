@@ -3,7 +3,6 @@ package main
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"log"
-	"moderatorBot/internal/policy"
 	"moderatorBot/internal/storage"
 	"strconv"
 	"sync"
@@ -35,7 +34,6 @@ type (
 	// SupergroupChat структура для работы с общим чатом
 	SupergroupChat struct {
 		BaseChat
-		policies  []policy.Interface
 		moderated bool
 	}
 )
@@ -119,7 +117,7 @@ func (sc SupergroupChat) routine(botApi *tgbotapi.BotAPI, chats map[int64]ChatIn
 					}
 				}
 				// Цикл проверок
-				for _, v := range sc.policies {
+				for _, v := range ContainsPolicy {
 					if v.Check(message) != nil {
 						// Если проверка сработала, то удаляем сообщение
 						storage.Crime(message.Message.From.ID, panishments.Warnings, panishments.Bandur)

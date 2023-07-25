@@ -161,11 +161,12 @@ func DeleteBannedWord(id int64, channel chan tgbotapi.Update, storage storage.In
 		}
 		for i := 0; i < len(ContainsPolicy); i++ {
 			if ContainsPolicy[i].GetContains() == word {
-				log.Println(i) // не рабоатает
+				ContainsPolicy = append(ContainsPolicy[0:i], ContainsPolicy[i:]...)
+				break
 			}
 		}
-		if storage.DeleteBannedWord(word) == true {
 
+		if storage.DeleteBannedWord(word) == true {
 			BotAPI.Send(tgbotapi.NewMessage(id, "'"+word+"' удалено"))
 		} else {
 			BotAPI.Send(tgbotapi.NewMessage(id, "Слово '"+word+"' не найдено"))

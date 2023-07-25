@@ -95,13 +95,13 @@ func main() {
 					for i := 0; i < len(myUrls); i++ {
 						ContainsPolicy = append(ContainsPolicy, policy.NewOkUrl(myUrls[i]))
 					}
+					//policies = ContainsPolicy
 					chat = SupergroupChat{
 						BaseChat: BaseChat{
 							channel: make(chan tgbotapi.Update),
 							db:      model.Id,
 							tg:      message.FromChat().ID},
-						moderated: model.Moderated,
-						policies:  ContainsPolicy}
+						moderated: model.Moderated}
 				} else {
 					// TODO: пишем в лог
 					continue
