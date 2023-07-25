@@ -160,9 +160,21 @@ func DeleteBannedWord(id int64, channel chan tgbotapi.Update, storage storage.In
 			log.Println(err.Error())
 		}
 		if storage.DeleteBannedWord(word) == true {
+
 			BotAPI.Send(tgbotapi.NewMessage(id, "'"+word+"' удалено"))
 		} else {
 			BotAPI.Send(tgbotapi.NewMessage(id, "Слово '"+word+"' не найдено"))
 		}
 	}
 }
+
+//func RefreshPolicy(storage storage.Interface) {
+//	myPolicy, err := storage.GetPolicy()
+//	if err != nil {
+//		log.Println(err.Error())
+//	}
+//	ContainsPolicy = ContainsPolicy[:0]
+//	for i := 0; i < len(myPolicy); i++ {
+//		ContainsPolicy = append(ContainsPolicy, policy.NewContains(myPolicy[i]))
+//	}
+//}

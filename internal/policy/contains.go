@@ -25,3 +25,7 @@ func (c Contains) Check(update tgbotapi.Update) error {
 	}
 	return nil
 }
+
+func (c Contains) GetContains() string {
+	return c.text
+}
