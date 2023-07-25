@@ -48,3 +48,7 @@ func (c Urls) Check(update tgbotapi.Update) error {
 	}
 	return nil
 }
+
+func (c Urls) GetContains() string {
+	return c.text
+}
