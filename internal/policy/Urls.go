@@ -16,7 +16,7 @@ func NewOkUrl(text string) Urls { return Urls{text: text} }
 
 func (c Urls) Check(update tgbotapi.Update) error {
 	if update.Message != nil {
-		words := strings.Split(update.Message.Text, " ")
+		words := strings.Split(strings.ToLower(update.Message.Text), " ")
 		for index := 0; index < len(words); index++ {
 			word := words[index]
 			if len(word) > 4 {
