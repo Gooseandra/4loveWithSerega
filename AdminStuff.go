@@ -88,8 +88,9 @@ func BanWordAddition(id int64, channel chan tgbotapi.Update, storage storage.Int
 			//TODO: какая то реакция
 		}
 		storage.AddBannedWord(strings.ToLower(banWord))
-		log.Println(len(ContainsPolicy))
+		print(ContainsPolicy)
 		ContainsPolicy = append(ContainsPolicy, policy.NewContains(banWord))
+		print(ContainsPolicy[:])
 		BotAPI.Send(tgbotapi.NewMessage(id, BanWordAdded))
 		showKeyboard(id, WhatToDoText, MainAdminKeyboard)
 	} else {
@@ -103,6 +104,8 @@ func SetWarningsVal(id int64, storage storage.Interface, channel chan tgbotapi.U
 		panishments.Warnings = trollcheck(id, channel)
 		storage.SetWarnings(panishments.Warnings)
 		showKeyboard(id, WhatToDoText, MainAdminKeyboard)
+	} else {
+		BotAPI.Send(tgbotapi.NewMessage(id, NotAdminText+strconv.Itoa(int(id))))
 	}
 }
 
@@ -112,6 +115,8 @@ func setBantime(id int64, storage storage.Interface, channel chan tgbotapi.Updat
 		panishments.Bandur = time.Minute * time.Duration(trollcheck(id, channel))
 		storage.SetBanTime(trollcheck(id, channel))
 		showKeyboard(id, WhatToDoText, MainAdminKeyboard)
+	} else {
+		BotAPI.Send(tgbotapi.NewMessage(id, NotAdminText+strconv.Itoa(int(id))))
 	}
 }
 
@@ -152,6 +157,8 @@ func GetPanishments(id int64, storage storage.Interface) {
 	if IsItAdmin(id, storage) == true {
 		war, ban := storage.GetPanishments()
 		BotAPI.Send(tgbotapi.NewMessage(id, "Время мута (минуты): "+ban+"\nКоличество предупреждений: "+war))
+	} else {
+		BotAPI.Send(tgbotapi.NewMessage(id, NotAdminText+strconv.Itoa(int(id))))
 	}
 }
 
@@ -164,8 +171,11 @@ func DeleteBannedWord(id int64, channel chan tgbotapi.Update, storage storage.In
 		var r []policy.Interface
 		for i := 0; i < len(ContainsPolicy); i++ {
 			if ContainsPolicy[i].GetContains() == word {
+				print(ContainsPolicy)
+				log.Println(ContainsPolicy[0:i], ContainsPolicy[i:], "+++", i)
 				log.Println(ContainsPolicy[0:i], ContainsPolicy[i+1:], "+++", i)
-				r = append(ContainsPolicy[0:i], ContainsPolicy[i:]...)
+				r = append(ContainsPolicy[0:i], ContainsPolicy[i+1:]...)
+				log.Println(r)
 				break
 			}
 		}
@@ -176,8 +186,10 @@ func DeleteBannedWord(id int64, channel chan tgbotapi.Update, storage storage.In
 			BotAPI.Send(tgbotapi.NewMessage(id, "Слово '"+word+"' не найдено"))
 		}
 		return r
+	} else {
+		BotAPI.Send(tgbotapi.NewMessage(id, NotAdminText+strconv.Itoa(int(id))))
+		return ContainsPolicy
 	}
-	return ContainsPolicy
 }
 
 //func RefreshPolicy(storage storage.Interface) {
