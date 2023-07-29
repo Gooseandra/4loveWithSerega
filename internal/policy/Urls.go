@@ -21,24 +21,24 @@ func (c Urls) Check(update tgbotapi.Update) error {
 			word := words[index]
 			if len(word) > 4 {
 				if word[:4] == "www." {
-					sleshes := strings.Split(update.Message.Text, "/")
-					for i := 0; i < len(sleshes); i++ {
-						if sleshes[0] == "www."+c.text {
+					slashes := strings.Split(update.Message.Text, "/")
+					for i := 0; i < len(slashes); i++ {
+						if slashes[0] == "www."+c.text {
 							break
 						}
-						if i == len(sleshes)-1 {
+						if i == len(slashes)-1 {
 							return errors.New("Содержит ссылку")
 						}
 					}
 				} else if word[:5] == "https" {
-					sleshes := strings.Split(update.Message.Text, "/")
-					for i := 0; i < len(sleshes); i++ {
-						log.Println("https://" + sleshes[i])
+					slashes := strings.Split(update.Message.Text, "/")
+					for i := 0; i < len(slashes); i++ {
+						log.Println("https://" + slashes[i])
 						log.Println(c.text)
-						if sleshes[i] == c.text || sleshes[i] == "https://www."+c.text {
+						if slashes[i] == c.text || slashes[i] == "https://www."+c.text {
 							break
 						}
-						if i == len(sleshes)-1 {
+						if i == len(slashes)-1 {
 							return errors.New("Содержит ссылку")
 						}
 					}
