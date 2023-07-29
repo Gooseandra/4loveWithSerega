@@ -6,6 +6,7 @@ import (
 	"moderatorBot/internal/policy"
 	"moderatorBot/internal/storage"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -79,14 +80,15 @@ func AdminAddition(id int64, channel chan tgbotapi.Update, storage storage.Inter
 	}
 }
 
-func BanWordAddition(id int64, channel chan tgbotapi.Update, storage storage.Interface, ContainsPolicy []policy.Interface) {
+func BanWordAddition(id int64, channel chan tgbotapi.Update, storage storage.Interface) {
 	if IsItAdmin(id, storage) == true {
 		hideKeyboard(id, ReqBanWordText)
 		banWord, err := InputText(id, channel, "")
 		if err != nil {
 			//TODO: какая то реакция
 		}
-		storage.AddBannedWord(banWord)
+		storage.AddBannedWord(strings.ToLower(banWord))
+		log.Println(len(ContainsPolicy))
 		ContainsPolicy = append(ContainsPolicy, policy.NewContains(banWord))
 		BotAPI.Send(tgbotapi.NewMessage(id, BanWordAdded))
 		showKeyboard(id, WhatToDoText, MainAdminKeyboard)
@@ -153,15 +155,17 @@ func GetPanishments(id int64, storage storage.Interface) {
 	}
 }
 
-func DeleteBannedWord(id int64, channel chan tgbotapi.Update, storage storage.Interface) {
+func DeleteBannedWord(id int64, channel chan tgbotapi.Update, storage storage.Interface) []policy.Interface {
 	if IsItAdmin(id, storage) == true {
 		word, err := InputText(id, channel, "Введите слово для удаления")
 		if err != nil {
 			log.Println(err.Error())
 		}
+		var r []policy.Interface
 		for i := 0; i < len(ContainsPolicy); i++ {
 			if ContainsPolicy[i].GetContains() == word {
-				ContainsPolicy = append(ContainsPolicy[0:i], ContainsPolicy[i:]...)
+				log.Println(ContainsPolicy[0:i], ContainsPolicy[i+1:], "+++", i)
+				r = append(ContainsPolicy[0:i], ContainsPolicy[i:]...)
 				break
 			}
 		}
@@ -171,7 +175,9 @@ func DeleteBannedWord(id int64, channel chan tgbotapi.Update, storage storage.In
 		} else {
 			BotAPI.Send(tgbotapi.NewMessage(id, "Слово '"+word+"' не найдено"))
 		}
+		return r
 	}
+	return ContainsPolicy
 }
 
 //func RefreshPolicy(storage storage.Interface) {

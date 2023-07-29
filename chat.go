@@ -61,7 +61,7 @@ func (pc PrivateChat) routine(_ *tgbotapi.BotAPI, chats map[int64]ChatInterface,
 				case AddAdminText:
 					AdminAddition(pc.tg, pc.channel, storage)
 				case AddBannedWordText:
-					BanWordAddition(pc.tg, pc.channel, storage, ContainsPolicy)
+					BanWordAddition(pc.tg, pc.channel, storage)
 				case SetBanTimeText:
 					setBantime(pc.tg, storage, pc.channel)
 				case SetWarningsText:
@@ -69,7 +69,7 @@ func (pc PrivateChat) routine(_ *tgbotapi.BotAPI, chats map[int64]ChatInterface,
 				case GetSettingsText:
 					GetPanishments(pc.tg, storage)
 				case DeleteBannedWordText:
-					DeleteBannedWord(pc.tg, pc.channel, storage)
+					ContainsPolicy = DeleteBannedWord(pc.tg, pc.channel, storage)
 				default:
 					showCmd := tgbotapi.NewMessage(pc.tg, WhatToDoText)
 					showCmd.ReplyMarkup = MainAdminKeyboard
@@ -117,6 +117,8 @@ func (sc SupergroupChat) routine(botApi *tgbotapi.BotAPI, chats map[int64]ChatIn
 					}
 				}
 				// Цикл проверок
+				log.Println(len(ContainsPolicy), ContainsPolicy)
+
 				for _, v := range ContainsPolicy {
 					if v.Check(message) != nil {
 						// Если проверка сработала, то удаляем сообщение

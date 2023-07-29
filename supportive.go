@@ -34,7 +34,6 @@ func InputText(id int64, channel chan tgbotapi.Update, disc string) (string, err
 }
 
 func IsItAdmin(id int64, storage storage.Interface) bool {
-	return true
 	admins, err := storage.LoadAdmins()
 	if err != nil {
 		//TODO: пришем в лог

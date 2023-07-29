@@ -18,7 +18,7 @@ func (c Contains) Check(update tgbotapi.Update) error {
 		words := strings.Split(update.Message.Text, " ")
 		for index := 0; index < len(words); index++ {
 			word := words[index]
-			if word == c.text {
+			if strings.ToLower(word) == c.text {
 				return errors.New("Содержит слово '" + c.text + "'")
 			}
 		} // word[:5] == "https"
