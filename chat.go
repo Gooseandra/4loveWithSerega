@@ -120,12 +120,13 @@ func (sc SupergroupChat) routine(botApi *tgbotapi.BotAPI, chats map[int64]ChatIn
 				log.Println(len(ContainsPolicy), ContainsPolicy)
 
 				for _, v := range ContainsPolicy {
-					if v.Check(message) != nil {
+					if err := v.Check(message); err != nil {
+						log.Println("ААААА!", err.Error()) // вердикт (.)(.)
 						// Если проверка сработала, то удаляем сообщение
 						storage.Crime(message.Message.From.ID, panishments.Warnings, panishments.Bandur)
 						dm := tgbotapi.NewDeleteMessage(message.Message.Chat.ID, message.Message.MessageID)
 						if _, fail := botApi.Request(dm); fail != nil {
-							// TODO: сохраняем кучу данных в лог
+							// TODO: тут снова туду сохнарить в базу сообщение об ошибке на третьей стороне (')(')
 						}
 						break
 					}
