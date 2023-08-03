@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"log"
 	"moderatorBot/internal/policy"
@@ -24,20 +25,25 @@ const (
 
 	NotAdminText = "Вы не являетесь админом\nЕсли вы хотите, чтобы вас назначили админом, сообщите приглашающему код:\n"
 
-	AddBannedWordText    = "Добавить запрещённое слово"
-	AddAdminText         = "Добавить админа"
-	SetBanTimeText       = "Установить время мута"
-	SetWarningsText      = "Установить количество предупреждений"
-	GetSettingsText      = "Узнать настройки"
-	DeleteBannedWordText = "Удалить запрещённое слово"
+	AddBannedWordText       = "Добавить запрещённое слово"
+	AddAdminText            = "Добавить админа"
+	SetBanTimeText          = "Установить время мута"
+	SetWarningsText         = "Установить количество предупреждений"
+	GetSettingsText         = "Узнать настройки"
+	DeleteBannedWordText    = "Удалить запрещённое слово"
+	AddURLText              = "Добавить разрешённую ссылку"
+	DeleteURLText           = "Удалить разрешённую ссылку"
+	AddIntoWhiteListText    = "Добавить в белый список"
+	DeleteFromWhiteListText = "Удалить из белого списка"
 
 	WhatToDoText = "Что делать будем?"
 )
 
 var MainAdminKeyboard = tgbotapi.NewReplyKeyboard(
-	tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(AddBannedWordText), tgbotapi.NewKeyboardButton(SetBanTimeText)),
-	tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(DeleteBannedWordText), tgbotapi.NewKeyboardButton(SetWarningsText)),
-	tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(AddAdminText), tgbotapi.NewKeyboardButton(GetSettingsText)),
+	tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(AddBannedWordText), tgbotapi.NewKeyboardButton(DeleteBannedWordText), tgbotapi.NewKeyboardButton(AddIntoWhiteListText)),
+	tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(AddURLText), tgbotapi.NewKeyboardButton(DeleteURLText), tgbotapi.NewKeyboardButton(DeleteFromWhiteListText)),
+	tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(SetBanTimeText), tgbotapi.NewKeyboardButton(SetWarningsText), tgbotapi.NewKeyboardButton(GetSettingsText)),
+	tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(AddAdminText)),
 )
 
 var ConfirmationKeyboard = tgbotapi.NewReplyKeyboard(
@@ -70,7 +76,7 @@ func CreateAdmin(id int64, channel chan tgbotapi.Update) (int64, string) {
 
 func AdminAddition(id int64, channel chan tgbotapi.Update, storage storage.Interface) {
 	if IsItAdmin(id, storage) == true {
-		hideKeyboard(id, ReqBanWordText)
+		hideKeyboard(id, "Ща всё будет")
 		tg, name := CreateAdmin(id, channel)
 		storage.AddAdmins(tg, name)
 		BotAPI.Send(tgbotapi.NewMessage(id, "Админ с токеном: "+strconv.Itoa(int(tg))+"\nИменем: "+name+"\nДобавлен!"))
@@ -171,9 +177,6 @@ func DeleteBannedWord(id int64, channel chan tgbotapi.Update, storage storage.In
 		var r []policy.Interface
 		for i := 0; i < len(ContainsPolicy); i++ {
 			if ContainsPolicy[i].GetContains() == word {
-				print(ContainsPolicy)
-				log.Println(ContainsPolicy[0:i], ContainsPolicy[i:], "+++", i)
-				log.Println(ContainsPolicy[0:i], ContainsPolicy[i+1:], "+++", i)
 				r = append(ContainsPolicy[0:i], ContainsPolicy[i+1:]...)
 				log.Println(r)
 				break
@@ -189,6 +192,56 @@ func DeleteBannedWord(id int64, channel chan tgbotapi.Update, storage storage.In
 	} else {
 		BotAPI.Send(tgbotapi.NewMessage(id, NotAdminText+strconv.Itoa(int(id))))
 		return ContainsPolicy
+	}
+}
+
+func AddWhitePerson(id int64, channel chan tgbotapi.Update, storage storage.Interface) {
+	if IsItAdmin(id, storage) == true {
+		hideKeyboard(id, "Ща всё будет")
+		tgname, err := InputText(id, channel, "Введите ник телеграма добавляемого в белый лист (без @)\nНапример: EduardoDaModerator")
+		if err != nil {
+			log.Println(err.Error())
+		}
+		storage.AddIntoWhiteList(tgname)
+		whiteList = append(whiteList, tgname)
+		BotAPI.Send(tgbotapi.NewMessage(id, "Пользователь "+tgname+" теперь белый!"))
+	} else {
+		BotAPI.Send(tgbotapi.NewMessage(id, NotAdminText+strconv.Itoa(int(id))))
+	}
+}
+
+func DeleteWhitePerson(id int64, channel chan tgbotapi.Update, storage storage.Interface) []string {
+	if IsItAdmin(id, storage) == true {
+		wl := storage.GetWhiteList()
+
+		buffer := bytes.Buffer{}
+		for _, val := range wl {
+			buffer.WriteString(val + "\n")
+		}
+		BotAPI.Send(tgbotapi.NewMessage(id, buffer.String()))
+		todel, err := InputText(id, channel, "Кого удаляем? Введи тг ник (без @)\nНапример: EduardoDaModerator")
+
+		if err != nil {
+			log.Println(err.Error())
+		}
+		if storage.DeleteFromWhiteList(todel) {
+			var r []string
+			for i := 0; i < len(whiteList); i++ {
+				if whiteList[i] == todel {
+					r = append(whiteList[0:i], whiteList[i+1:]...)
+				}
+			}
+			BotAPI.Send(tgbotapi.NewMessage(id, "Пользователь "+todel+" теперь чёрный 👨🏿"))
+			showKeyboard(id, "Что делать будем?", MainAdminKeyboard)
+			return r
+		}
+		BotAPI.Send(tgbotapi.NewMessage(id, "Пользователь "+todel+" не найден"))
+		showKeyboard(id, "Что делать будем?", MainAdminKeyboard)
+		return whiteList
+	} else {
+		BotAPI.Send(tgbotapi.NewMessage(id, NotAdminText+strconv.Itoa(int(id))))
+		showKeyboard(id, "Что делать будем?", MainAdminKeyboard)
+		return whiteList
 	}
 }
 

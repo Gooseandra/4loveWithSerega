@@ -30,6 +30,11 @@ CREATE TABLE "panishments"(
     "bantime" int
 );
 
+create table "whitelist"(
+    "id" serial primary key,
+    "tgname" varchar(30)
+);
+
 CREATE TABLE "okurl"
 (
     "id" serial primary key,

@@ -70,6 +70,10 @@ func (pc PrivateChat) routine(_ *tgbotapi.BotAPI, chats map[int64]ChatInterface,
 					GetPanishments(pc.tg, storage)
 				case DeleteBannedWordText:
 					ContainsPolicy = DeleteBannedWord(pc.tg, pc.channel, storage)
+				case DeleteFromWhiteListText:
+					whiteList = DeleteWhitePerson(pc.tg, pc.channel, storage)
+				case AddIntoWhiteListText:
+					AddWhitePerson(pc.tg, pc.channel, storage)
 				default:
 					showCmd := tgbotapi.NewMessage(pc.tg, WhatToDoText)
 					showCmd.ReplyMarkup = MainAdminKeyboard
@@ -117,17 +121,25 @@ func (sc SupergroupChat) routine(botApi *tgbotapi.BotAPI, chats map[int64]ChatIn
 					}
 				}
 				// Цикл проверок
-
-				for _, v := range ContainsPolicy {
-					if err := v.Check(message); err != nil {
-						log.Println("ААААА!", err.Error()) // вердикт (.)(.)(.)
-						// Если проверка сработала, то удаляем сообщение
-						storage.Crime(message.Message.From.ID, panishments.Warnings, panishments.Bandur)
-						dm := tgbotapi.NewDeleteMessage(message.Message.Chat.ID, message.Message.MessageID)
-						if _, fail := botApi.Request(dm); fail != nil {
-							// TODO: тут снова туду сохнарить в базу сообщение об ошибке на третьей стороне (')(')
-						}
+				var white = false
+				for _, v := range whiteList {
+					if message.Message.From.UserName == v {
+						white = true
 						break
+					}
+				}
+				if white == false {
+					for _, v := range ContainsPolicy {
+						if err := v.Check(message); err != nil {
+							log.Println("ААААА!", err.Error()) // вердикт (.)(.)(.)
+							// Если проверка сработала, то удаляем сообщение
+							storage.Crime(message.Message.From.ID, panishments.Warnings, panishments.Bandur)
+							dm := tgbotapi.NewDeleteMessage(message.Message.Chat.ID, message.Message.MessageID)
+							if _, fail := botApi.Request(dm); fail != nil {
+								// TODO: тут снова туду сохнарить в базу сообщение об ошибке на третьей стороне (')(')
+							}
+							break
+						}
 					}
 				}
 			default:

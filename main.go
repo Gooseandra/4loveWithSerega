@@ -22,6 +22,7 @@ var BotAPI *tgbotapi.BotAPI
 
 var ContainsPolicy []policy.Interface
 var UrlPolicy []policy.Interface
+var whiteList []string
 
 func main() {
 	var mainMutex sync.Mutex
@@ -95,6 +96,7 @@ func main() {
 					for i := 0; i < len(myUrls); i++ {
 						ContainsPolicy = append(ContainsPolicy, policy.NewOkUrl(myUrls[i]))
 					}
+					whiteList = storage_.GetWhiteList()
 					//policies = ContainsPolicy
 					chat = SupergroupChat{
 						BaseChat: BaseChat{

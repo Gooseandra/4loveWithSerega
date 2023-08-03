@@ -212,6 +212,38 @@ func (p Postgres) DeleteBannedWord(word string) bool {
 	return false
 }
 
+func (p Postgres) GetWhiteList() []string {
+	row, err := p.handle.Query(`select "tgname" from "whitelist"`)
+	if err != nil {
+		log.Println(err.Error())
+		return nil
+	}
+	var temp string
+	var r []string
+	for row.Next() {
+		row.Scan(&temp)
+		r = append(r, temp)
+	}
+	return r
+}
+
+func (p Postgres) AddIntoWhiteList(name string) {
+	p.handle.Exec(`insert into "whitelist"("tgname")values($1)`, name)
+}
+
+func (p Postgres) DeleteFromWhiteList(name string) bool {
+	r, err := p.handle.Exec(`delete from "whitelist" where "tgname" = $1`, name)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	if c, err := r.RowsAffected(); err != nil {
+		log.Println(err.Error())
+	} else if c != 0 {
+		return true
+	}
+	return false
+}
+
 //time.Now().Local().Add(time.Hour * time.Duration(Hours) +
 //time.Minute * time.Duration(Mins) +
 //time.Second * time.Duration(Sec))

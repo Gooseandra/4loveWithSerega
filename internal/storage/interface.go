@@ -24,6 +24,9 @@ type (
 		GetUrls() []string
 		GetPanishments() (string, string)
 		DeleteBannedWord(string) bool
+		GetWhiteList() []string
+		AddIntoWhiteList(string)
+		DeleteFromWhiteList(string) bool
 	}
 
 	UpsertChatByTgModel struct {

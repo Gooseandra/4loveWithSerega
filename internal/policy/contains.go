@@ -16,8 +16,15 @@ func NewContains(text string) Contains { return Contains{text: text} }
 func (c Contains) Check(update tgbotapi.Update) error {
 	if update.Message != nil {
 		words := strings.Split(update.Message.Text, " ")
-		for index := 0; index < len(words); index++ {
-			word := words[index]
+		var wordsAndStrings []string
+		for i := 0; i < len(words); i++ {
+			temp := strings.Split(words[i], "\n")
+			for _, v := range temp {
+				wordsAndStrings = append(wordsAndStrings, v)
+			}
+		}
+		for index := 0; index < len(wordsAndStrings); index++ {
+			word := wordsAndStrings[index]
 			if strings.ToLower(word) == c.text {
 				return errors.New("Содержит слово '" + c.text + "'")
 			}
