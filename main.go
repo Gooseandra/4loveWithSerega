@@ -94,7 +94,7 @@ func main() {
 						ContainsPolicy = append(ContainsPolicy, policy.NewContains(myPolicy[i]))
 					}
 					for i := 0; i < len(myUrls); i++ {
-						ContainsPolicy = append(ContainsPolicy, policy.NewOkUrl(myUrls[i]))
+						UrlPolicy = append(UrlPolicy, policy.NewOkUrl(myUrls[i]))
 					}
 					whiteList = storage_.GetWhiteList()
 					//policies = ContainsPolicy

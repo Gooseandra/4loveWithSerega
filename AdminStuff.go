@@ -178,7 +178,6 @@ func DeleteBannedWord(id int64, channel chan tgbotapi.Update, storage storage.In
 		for i := 0; i < len(ContainsPolicy); i++ {
 			if ContainsPolicy[i].GetContains() == word {
 				r = append(ContainsPolicy[0:i], ContainsPolicy[i+1:]...)
-				log.Println(r)
 				break
 			}
 		}
@@ -242,6 +241,52 @@ func DeleteWhitePerson(id int64, channel chan tgbotapi.Update, storage storage.I
 		BotAPI.Send(tgbotapi.NewMessage(id, NotAdminText+strconv.Itoa(int(id))))
 		showKeyboard(id, "Что делать будем?", MainAdminKeyboard)
 		return whiteList
+	}
+}
+
+func AddUrl(id int64, channel chan tgbotapi.Update, storage storage.Interface) {
+	if IsItAdmin(id, storage) == true {
+		url, err := InputText(id, channel, "Введите разрешённую ссылку без https и сегментов (отделяются слешем)\n"+
+			"Например crypto-emergency.com")
+		if err != nil {
+			log.Println(err.Error())
+		}
+		storage.AddUrls(url)
+		BotAPI.Send(tgbotapi.NewMessage(id, "Ссылка "+url+" добавлена в сисок разрешённых"))
+	} else {
+		BotAPI.Send(tgbotapi.NewMessage(id, NotAdminText+strconv.Itoa(int(id))))
+	}
+}
+
+func DeleteUrl(id int64, channel chan tgbotapi.Update, storage storage.Interface) []policy.Interface {
+	if IsItAdmin(id, storage) == true {
+		urls := storage.GetUrls()
+
+		buffer := bytes.Buffer{}
+		for _, val := range urls {
+			buffer.WriteString(val + "\n")
+		}
+		BotAPI.Send(tgbotapi.NewMessage(id, buffer.String()))
+		todel, err := InputText(id, channel, "Кого удаляем? Введи ссылку без https и сегментов (отделяются слешем)\n"+
+			"Например: crypto-emergency.com")
+		if err != nil {
+			log.Println(err.Error())
+		}
+		if storage.DeleteUrls(todel) {
+			var r []policy.Interface
+			for i := 0; i < len(UrlPolicy); i++ {
+				if UrlPolicy[i].GetContains() == todel {
+					r = append(UrlPolicy[0:i], UrlPolicy[i+1:]...)
+				}
+			}
+			BotAPI.Send(tgbotapi.NewMessage(id, "Ссылка "+todel+" удалена"))
+			return r
+		}
+		BotAPI.Send(tgbotapi.NewMessage(id, "Ссылка "+todel+" не найдена"))
+		return UrlPolicy
+	} else {
+		BotAPI.Send(tgbotapi.NewMessage(id, NotAdminText+strconv.Itoa(int(id))))
+		return UrlPolicy
 	}
 }
 

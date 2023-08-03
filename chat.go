@@ -74,6 +74,10 @@ func (pc PrivateChat) routine(_ *tgbotapi.BotAPI, chats map[int64]ChatInterface,
 					whiteList = DeleteWhitePerson(pc.tg, pc.channel, storage)
 				case AddIntoWhiteListText:
 					AddWhitePerson(pc.tg, pc.channel, storage)
+				case AddURLText:
+					AddUrl(pc.tg, pc.channel, storage)
+				case DeleteURLText:
+					DeleteUrl(pc.tg, pc.channel, storage)
 				default:
 					showCmd := tgbotapi.NewMessage(pc.tg, WhatToDoText)
 					showCmd.ReplyMarkup = MainAdminKeyboard
@@ -139,6 +143,20 @@ func (sc SupergroupChat) routine(botApi *tgbotapi.BotAPI, chats map[int64]ChatIn
 								// TODO: тут снова туду сохнарить в базу сообщение об ошибке на третьей стороне (')(')
 							}
 							break
+						}
+					}
+					for i, v := range UrlPolicy {
+						if err := v.Check(message); err != nil {
+							if i == len(UrlPolicy)-1 {
+								log.Println("ААААА!", err.Error()) // вердикт (.)(.)(.)
+								// Если проверка сработала, то удаляем сообщение
+								storage.Crime(message.Message.From.ID, panishments.Warnings, panishments.Bandur)
+								dm := tgbotapi.NewDeleteMessage(message.Message.Chat.ID, message.Message.MessageID)
+								if _, fail := botApi.Request(dm); fail != nil {
+									// TODO: тут снова туду сохнарить в базу сообщение об ошибке на третьей стороне (')(')
+								}
+								break
+							}
 						}
 					}
 				}

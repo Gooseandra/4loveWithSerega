@@ -27,6 +27,8 @@ type (
 		GetWhiteList() []string
 		AddIntoWhiteList(string)
 		DeleteFromWhiteList(string) bool
+		AddUrls(string)
+		DeleteUrls(string) bool
 	}
 
 	UpsertChatByTgModel struct {

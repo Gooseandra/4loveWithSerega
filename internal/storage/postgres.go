@@ -244,6 +244,23 @@ func (p Postgres) DeleteFromWhiteList(name string) bool {
 	return false
 }
 
+func (p Postgres) AddUrls(url string) {
+	p.handle.Exec(`insert into "okurl"("url")values($1)`, url)
+}
+
+func (p Postgres) DeleteUrls(url string) bool {
+	r, err := p.handle.Exec(`delete from "okurl" where "url" = $1`, url)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	if c, err := r.RowsAffected(); err != nil {
+		log.Println(err.Error())
+	} else if c != 0 {
+		return true
+	}
+	return false
+}
+
 //time.Now().Local().Add(time.Hour * time.Duration(Hours) +
 //time.Minute * time.Duration(Mins) +
 //time.Second * time.Duration(Sec))
