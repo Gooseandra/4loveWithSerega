@@ -252,6 +252,7 @@ func AddUrl(id int64, channel chan tgbotapi.Update, storage storage.Interface) {
 			log.Println(err.Error())
 		}
 		storage.AddUrls(url)
+		UrlPolicy = append(ContainsPolicy, policy.NewOkUrl(url))
 		BotAPI.Send(tgbotapi.NewMessage(id, "Ссылка "+url+" добавлена в сисок разрешённых"))
 	} else {
 		BotAPI.Send(tgbotapi.NewMessage(id, NotAdminText+strconv.Itoa(int(id))))
