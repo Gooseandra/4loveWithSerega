@@ -115,6 +115,7 @@ func (sc SupergroupChat) routine(botApi *tgbotapi.BotAPI, chats map[int64]ChatIn
 					continue
 				}
 				banned := storage.GetBanList()
+				log.Println(banned)
 				for i := 0; i < len(banned); i++ {
 					temp, _ := strconv.Atoi(banned[i])
 					if message.Message.From.ID == int64(temp) {

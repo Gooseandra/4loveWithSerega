@@ -261,6 +261,9 @@ func (p Postgres) DeleteUrls(url string) bool {
 	return false
 }
 
+func (p Postgres) NewChat(id int64) {
+}
+
 //time.Now().Local().Add(time.Hour * time.Duration(Hours) +
 //time.Minute * time.Duration(Mins) +
 //time.Second * time.Duration(Sec))

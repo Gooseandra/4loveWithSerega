@@ -1,21 +1,27 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/go-yaml/yaml"
 	_ "github.com/lib/pq"
 	"log"
 	"moderatorBot/internal/policy"
 	"moderatorBot/internal/storage"
+	"net/http"
 	"os"
 	"strconv"
 	"sync"
+	"time"
 )
 
 const (
 	privateChatType    = "private"
 	supergroupChatType = "supergroup"
 	groutChatType      = "group"
+
+	addres = "127.0.0.1:80"
 )
 
 var BotAPI *tgbotapi.BotAPI
@@ -23,6 +29,99 @@ var BotAPI *tgbotapi.BotAPI
 var ContainsPolicy []policy.Interface
 var UrlPolicy []policy.Interface
 var whiteList []string
+
+func startServer(storage storage.Interface) {
+	log.Println("дада ")
+	http.HandleFunc("/", func(rw http.ResponseWriter, req *http.Request) {
+		admins, _ := storage.LoadAdmins()
+
+		f := "3"
+		ttt := "hjhjh"
+		ttt = ttt + "yyjy" + f
+		log.Println(admins)
+		//fmt.Fprintf(rw, "<html><body><div>%s, %s</div></body></html>", admins[0].Tg, admins[1].Tg)
+		fmt.Fprintf(rw, "<html>"+
+			"<body>"+
+			"<div><input id='input'><Br>"+
+			"<button onclick=\"let k = document.getElementById('input').value;fetch('/test?id=' + k).then(async function (res) {let tmp = await res.text(); alert(tmp)}); \">Казнить</button><br>"+
+			"<button onclick=\"let k = document.getElementById('input').value;fetch('/test2?id=' + k).then(async function (res) {let tmp = await res.text(); alert(tmp)}); \">Помиловать</button><br>"+
+			"<button onclick=\"let k = document.getElementById('input').value;fetch('/bannedusers?id=' + k).then(async function (res) {let tmp = await res.text(); console.log(tmp)}); \">Кто ЗДОХЪ?</button>"+
+			"</div>"+
+			"<div id='bann'>"+
+			"</div>"+
+			"<script>"+
+			"fetch('/bannedusers').then(async function (res){"+
+			"let tmp = await res.json();"+
+			"let el = document.getElementById('bann');"+
+			"for (let item of tmp){"+
+			"const button = document.createElement(\"button\");"+
+			"button.innerHTML = 'Помиловать ' + item;"+
+			"button.addEventListener('click',()=>{"+
+			"console.log(item);"+
+			"fetch('/test2?id=' + item).then(async function (res) {let tmp = await res.text(); alert(tmp)});"+
+			"});"+
+			"el.appendChild(button);"+
+			"}"+
+			"console.log(tmp);"+
+			"})"+
+			"</script>"+
+			"</body>"+
+			"</html>")
+	})
+	http.HandleFunc("/test", func(rw http.ResponseWriter, req *http.Request) {
+		id := req.FormValue("id")
+		log.Println(id)
+		//admins, _ := storage.LoadAdmins()
+		//log.Println(admins)
+		//fmt.Fprintf(rw, "<html><body><div>uuuuu=%s, %s</div></body></html>", admins[0].Tg, admins[1].Tg)
+		banned := storage.GetBanList()
+		var found = false
+		for _, v := range banned {
+			if v == id {
+				found = true
+				//fmt.Fprintf(rw, "")
+				break
+			}
+		}
+		if found == false {
+			intid, _ := strconv.Atoi(id)
+			storage.Crime(int64(intid), 0, time.Minute*30)
+			storage.Crime(int64(intid), 0, time.Minute*30)
+			fmt.Fprintf(rw, "ok")
+		} else {
+			fmt.Fprintf(rw, "err")
+		}
+	})
+	http.HandleFunc("/test2", func(rw http.ResponseWriter, req *http.Request) {
+		//admins, _ := storage.LoadAdmins()
+		id := req.FormValue("id")
+		log.Println(id)
+		//log.Println(admins)
+		//fmt.Fprintf(rw, "<html><body><div>uuuuu=%s, %s</div></body></html>", admins[0].Tg, admins[1].Tg)
+		banned := storage.GetBanList()
+		var found = false
+		for _, v := range banned {
+			if v == id {
+				found = true
+				//fmt.Fprintf(rw, "")
+				break
+			}
+		}
+		if found == true {
+			intid, _ := strconv.Atoi(id)
+			storage.Unban(int64(intid), time.Nanosecond)
+			fmt.Fprintf(rw, "ok")
+		} else {
+			fmt.Fprintf(rw, "err")
+		}
+	})
+	http.HandleFunc("/bannedusers", func(rw http.ResponseWriter, req *http.Request) {
+		banned := storage.GetBanList()
+		res, _ := json.Marshal(banned)
+		fmt.Fprintf(rw, "%s", res)
+	})
+	log.Fatal("HTTP server error: ", http.ListenAndServe(addres, nil))
+}
 
 func main() {
 	var mainMutex sync.Mutex
@@ -54,6 +153,7 @@ func main() {
 
 	panishments.Bandur = storage_.GetBanTime()
 	panishments.Warnings = storage_.GetWarnings()
+	go startServer(storage_)
 
 	for {
 		select {
@@ -78,7 +178,6 @@ func main() {
 						db:      model.Id,
 						tg:      message.FromChat().ID}}
 				} else if message.Message.Chat.Type == supergroupChatType || message.Message.Chat.Type == groutChatType {
-					log.Println("okok")
 					var model storage.UpsertChatByTgModel
 					model, fail = storage_.UpsertChatByTg(message.Message.Chat.ID, message.Message.Chat.Title)
 					if fail != nil {
